@@ -21,8 +21,8 @@ index = 0
 
 class Song(object):
 
-    def __init__(self, baseLIBRARY_PATH, filename, artist):
-        self.LIBRARY_PATH = baseLIBRARY_PATH + filename
+    def __init__(self, basepath, filename, artist):
+        self.path = basepath + filename
         self.artist = artist
         self.filename = filename
 
@@ -61,16 +61,16 @@ def loadDir():
     for dirname, subdir, files in os.walk(LIBRARY_PATH):
         if len(files) > 0:
             artist = dirname[PL+1:].split("/")[0]
-            baseLIBRARY_PATH = dirname + "/"
+            basepath = dirname + "/"
 
             for f in files:
-                songs.append(Song(baseLIBRARY_PATH, f, artist))
+                songs.append(Song(basepath, f, artist))
 
     loaded = True
 
 
 # Searches for a string and returns list of matches
-# Matches = (filename, artist, LIBRARY_PATH, match%)
+# Matches = (filename, artist, path, match%)
 def search(string, psi=0.90, limit=10, searchall=False):
     global songs
 
@@ -82,7 +82,7 @@ def search(string, psi=0.90, limit=10, searchall=False):
         match = jellyfish.jaro_distance(string.lower(), str(song))
         if match > psi:
             res.append({'index': song.index, 'filename': song.filename,
-                        'artist': song.artist, 'LIBRARY_PATH': song.LIBRARY_PATH,
+                        'artist': song.artist, 'path': song.path,
                         'match': match * 100})
 
             count += 1
