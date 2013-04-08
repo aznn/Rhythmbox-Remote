@@ -103,6 +103,7 @@ def playSong(args):
     perc = 0.85
     num = 3
     searchall = False
+    sid = 0
 
     if len(args) > 0 and "-" in args[0]:
         # if the first arg contains a '-' we are likely dealing
@@ -120,16 +121,20 @@ def playSong(args):
         parser.add_option("-p", "--perc", dest="perc",
                           help="Threshold Percentage (float)", default=perc)
 
+        parser.add_option("-i", "--id", dest="id",
+                          help="Id of the song as displayed in table", default=0)
+
         (options, args) = parser.parse_args(args)
         name = options.name
         num = int(options.num)
         searchall = True
+        sid = int(options.id)
 
         perc = float(options.perc)
         if perc > 1:
             perc /= 100
 
-        if name is None:
+        if name is None and sid == 0:
             print "Must pass -s argument for song, see -h"
             return
 
@@ -144,7 +149,11 @@ def playSong(args):
     import fuzzySearch
     import urllib
 
-    res = fuzzySearch.search(name, perc, num, searchall)
+    # If an id given
+    if sid != 0:
+        res = fuzzySearch.getFromId(sid)
+    else:
+        res = fuzzySearch.search(name, perc, num, searchall)
 
     if len(res) == 0:
         print "No matches for [%s]" % name

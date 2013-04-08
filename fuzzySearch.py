@@ -69,11 +69,24 @@ def loadDir():
     loaded = True
 
 
+# Get song based on the id
+def getFromId(sid):
+    global songs
+    loadDir()
+
+    song = songs[sid]
+    o = {'index': song.index, 'filename': song.filename,
+         'artist': song.artist, 'path': song.path,
+         'match': 100
+         }
+
+    return [o]
+
+
 # Searches for a string and returns list of matches
 # Matches = (filename, artist, path, match%)
 def search(string, psi=0.90, limit=10, searchall=False):
     global songs
-
     loadDir()
 
     res = []
