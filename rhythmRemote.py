@@ -86,7 +86,7 @@ def downloadLyrics(artist, title, savepath):
     if len(lyrics) == 0:
         print "No lyrics for current song"
         return False
-        
+
     # Save lyrics to file
     print "Saving lyrics to file: %s" % savepath
     lyricfile = open(savepath, "w")
@@ -105,7 +105,6 @@ def printLyrics():
     artist = str(metadata['xesam:artist'][0])
     url = unquote(str(metadata['xesam:url']))[7:-3]+'lrc'
 
-    print url
     display = False
     if os.path.isfile(url):
         display = True
@@ -117,7 +116,7 @@ def printLyrics():
     if display:
         pager = subprocess.Popen(['less', '-F', '-R', '-S', '-X', '-K', '-M', url], stdin=sys.stdin, stdout=sys.stdout)
         pager.wait()
-    
+
     #if display:
         # print it using Vim's version of less
     #    pager = subprocess.Popen(['/usr/share/vim/vim73/macros/less.sh',url], stdin=sys.stdin, stdout=sys.stdout)
