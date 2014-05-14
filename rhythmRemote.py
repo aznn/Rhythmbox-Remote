@@ -23,6 +23,7 @@ azaan@outlook.com
 import dbus
 import sys
 from termcolor import colored
+from urllib import unquote
 
 iProperties, iPlayer, iDB = None, None, None
 
@@ -50,24 +51,20 @@ def printCurrentSong(metadata=None):
         print "Rating : ", colored('* ' * int(rating), 'blue')
 
 
-# Prints the lyrics of the current playing song
-def printLyrics():
+# Downloads lyrics for a current song
+def downloadLyrics(artist, title, savepath):
     import urllib
     import bs4
-    import subprocess
-
-    metadata = dbus.Dictionary(iProperties.Get("org.mpris.MediaPlayer2.Player", "Metadata"))
-    title = urllib.quote(str(metadata['xesam:title']))
-    artist = urllib.quote(str(metadata['xesam:artist'][0]))
 
     url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=%s&song=%s"
-    url %= (artist, title)
+    url %= (urllib.quote(artist), urllib.quote(title))
+    #print "Artist: %s , Title: %s" % (artist,title)
 
     retry = 0
     while 1:
         if retry == 10:
             print "Maximum retires reached"
-            return
+            return False
 
         try:
             res = urllib.urlopen(url)
@@ -78,24 +75,53 @@ def printLyrics():
 
     if res.code != 200:
         print "Error contacting server"
-        return
+        return False
     else:
         res = res.read()
 
     # Parse the xml
-    p = bs4.BeautifulSoup(res)
-    lyrics = p.html.body.getlyricresult.lyric.text
+    p = bs4.BeautifulSoup(res,"xml")
+    lyrics = p.GetLyricResult.Lyric.text
 
     if len(lyrics) == 0:
         print "No lyrics for current song"
-        return
+        return False
+        
+    # Save lyrics to file
+    print "Saving lyrics to file: %s" % savepath
+    lyricfile = open(savepath, "w")
+    lyricfile.write(lyrics)
+    lyricfile.close()
+
+    return True
+
+
+# Prints the lyrics of the current playing song
+def printLyrics():
+    import os, subprocess
+
+    metadata = dbus.Dictionary(iProperties.Get("org.mpris.MediaPlayer2.Player", "Metadata"))
+    title = str(metadata['xesam:title'])
+    artist = str(metadata['xesam:artist'][0])
+    url = unquote(str(metadata['xesam:url']))[7:-3]+'lrc'
+
+    print url
+    display = False
+    if os.path.isfile(url):
+        display = True
+    else:
+        print "No local file found, downloading lyrics from internet"
+        display = downloadLyrics(artist, title, url)
 
     # print it with less (args taken from git)
-    pager = subprocess.Popen(['less', '-F', '-R', '-S', '-X', '-K', '-M'],
-                             stdin=subprocess.PIPE, stdout=sys.stdout)
-    pager.stdin.write(lyrics)
-    pager.stdin.close()
-    pager.wait()
+    if display:
+        pager = subprocess.Popen(['less', '-F', '-R', '-S', '-X', '-K', '-M', url], stdin=sys.stdin, stdout=sys.stdout)
+        pager.wait()
+    
+    #if display:
+        # print it using Vim's version of less
+    #    pager = subprocess.Popen(['/usr/share/vim/vim73/macros/less.sh',url], stdin=sys.stdin, stdout=sys.stdout)
+    #    pager.wait()
 
 
 # Plays a song indicated in the args
