@@ -14,7 +14,7 @@ import jellyfish
 from string import digits
 from operator import itemgetter
 
-LIBRARY_PATH = "/media/Delta/Media Library/Music"
+LIBRARY_PATH = os.environ.get('SONG_LIBRARY')
 PL = len(LIBRARY_PATH)
 index = 0
 
